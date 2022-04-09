@@ -45,7 +45,7 @@ function serveRequest(req: express.Request, res: express.Response, params: Descr
 }
 
 app.get("/api/test/:noun", (req, res) => {
-    res.send(`Hello, ${req.query.noun}`);
+    res.send(`Hello, ${req.params.noun}`);
 })
 
 app.get("/api/all", (req, res) => {

@@ -39,7 +39,7 @@ function serveRequest(req, res, params) {
     getInstancesInfo(req, res, params);
 }
 app.get("/api/test/:noun", (req, res) => {
-    res.send(`Hello, ${req.query.noun}`);
+    res.send(`Hello, ${req.params.noun}`);
 });
 app.get("/api/all", (req, res) => {
     const params = {};
