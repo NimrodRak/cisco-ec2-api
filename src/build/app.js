@@ -5,49 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
-const parameterOptions = ["name", "type", "state", "az", "publicIP", "privateIP"];
-const awsTerms = {
-    name: "instance-id",
-    type: "instance-type",
-    state: "instance-state-name",
-    az: "availabilityZone",
-    publicIP: "ip-address",
-    privateIP: "private-ip-address",
-};
-const unknownError = {
-    "error": {}
-    //    TODO : finish this error
-};
-const regionError = {
-    "error": {
-        "type": "rest",
-        "message": "Region parameter wasn't passed.",
-        "explanation": "AWS's API requires a specific region to be able to fetch info about EC2 instances in it",
-        "action": "Pass a valid AWS region in the querystring"
-    }
-};
-const authError = {
-    "error": {
-        "type": "rest",
-        "message": "Keys weren't passed correctly in request.",
-        "explanation": "API requires AWS keys are sent in the \"Authorization\" header in Basic auth scheme but this" +
-            "wasn't received",
-        "action": "Pass keys in Basic auth scheme through the \"Authorization\" header with base64 encoded" +
-            " accessKeyId:secretAccessKey",
-    }
-};
-const describeError = {
-    "error": {
-        "type": "rest",
-        "message": "AWS SDK could not authenticate user or did not have necessary permission policies to" +
-            "execute ec2:describeInstances.",
-        "explanation": "AWS SDK was called with invalid secret/ID keys or was given valid keys to user " +
-            "w/o necessary permissions.  Alternatively, there may be a connection issue between the server and AWS.",
-        "action": "Resubmit the request with valid keys for a user with the correct permissions."
-    }
-};
+const consts_1 = require("./consts");
 const app = (0, express_1.default)();
-const port = process.env.PORT || 3000;
 function initializeRegion(req) {
     if (req.params.region === undefined) {
         return -1;
@@ -66,7 +25,9 @@ function authenticateUser(req) {
     if (splitAuth.length != 2) {
         return -1;
     }
-    let splitDecodedAuth = Buffer.from(splitAuth[1], "base64").toString("utf8").split(":");
+    let splitDecodedAuth = Buffer.from(splitAuth[1], "base64")
+        .toString("utf8")
+        .split(":");
     if (splitDecodedAuth.length != 2) {
         return -1;
     }
@@ -96,10 +57,9 @@ function parseData(data) {
             };
         }) }, (data.NextToken !== undefined) && { "nextToken": data.NextToken });
 }
-function getInstancesInfo(req, res) {
-    const ec2 = new aws_sdk_1.default.EC2();
-    let params = { Filters: [] };
-    for (let param of parameterOptions) {
+function generateRequestParameters(req) {
+    let params = {};
+    for (let param of consts_1.parameterOptions) {
         param = param.toString();
         let val = req.query[param];
         if (val !== undefined) {
@@ -107,7 +67,7 @@ function getInstancesInfo(req, res) {
                 params.Filters = [];
             }
             params.Filters.push({
-                Name: awsTerms[param],
+                Name: consts_1.awsTerms[param],
                 Values: [val.toString()]
             });
         }
@@ -118,38 +78,55 @@ function getInstancesInfo(req, res) {
     if (req.query.maxResults !== undefined) {
         params.MaxResults = parseInt(req.query.maxResults.toString());
     }
-    ec2.describeInstances(params, (err, data) => {
-        if (err) {
-            res.status(401).send(describeError);
-            return;
-        }
-        console.log(data);
-        let parsedInstances = parseData(data);
-        if (parsedInstances !== undefined) {
-            res.send(parsedInstances);
+    return params;
+}
+function sortInstances(req, parsedInstances) {
+    var _a;
+    let sortby = (_a = req.query.sortby) === null || _a === void 0 ? void 0 : _a.toString();
+    if (parsedInstances.instances.length > 0 && sortby !== undefined) {
+        if (sortby in parsedInstances.instances[0]) {
+            parsedInstances.instances.sort((a, b) => 
+            // @ts-ignore // type check here is redundant because we just checked that the sorting key is a valid key
+            a[sortby].localeCompare(b[sortby]));
+            return 0;
         }
         else {
-            res.status(400).send(unknownError);
+            return -1;
+        }
+    }
+    return 0;
+}
+function getInstancesInfo(req, res) {
+    const ec2 = new aws_sdk_1.default.EC2();
+    let describeReqParams = generateRequestParameters(req);
+    ec2.describeInstances(describeReqParams, (err, data) => {
+        if (err) {
+            res.status(401).send(consts_1.describeError);
+            return;
+        }
+        let parsedInstances = parseData(data);
+        if (parsedInstances === undefined) {
+            res.status(400).send(consts_1.unknownError);
+            return;
+        }
+        if (sortInstances(req, parsedInstances)) {
+            res.status(400).send(consts_1.sortError);
+        }
+        else {
+            res.send(parsedInstances);
         }
     });
 }
 function serveRequest(req, res) {
     if (initializeRegion(req)) {
-        res.status(400).json(regionError);
+        res.status(400).json(consts_1.regionError);
     }
     else if (authenticateUser(req)) {
-        res.status(400).json(authError);
+        res.status(400).json(consts_1.authError);
     }
     else {
         getInstancesInfo(req, res);
     }
 }
-app.get("/api/test/:noun", (req, res) => {
-    res.send(`Hello, ${req.params.noun}`);
-});
-app.get("/api/:region/instances", (req, res) => {
-    serveRequest(req, res);
-});
-//    how to get TEMP CRED: https://docs.aws.amazon.com/STS/latest/APIReference/API_GetSessionToken.html
-//    api docu; https://gist.github.com/iros/3426278
-app.listen(port, () => console.log(`App listening on port ${port}`));
+app.get("/api/:region/instances", (req, res) => serveRequest(req, res));
+exports.default = app;
