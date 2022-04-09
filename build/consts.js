@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.awsTerms = exports.parameterOptions = exports.sortError = exports.describeError = exports.authError = exports.regionError = exports.unknownError = void 0;
+// list of errors for different contexts, format is based on IBM's RESTful APIs
 exports.unknownError = {
     "error": {
         "type": "rest",
@@ -8,7 +9,6 @@ exports.unknownError = {
         "explanation": "Unavailable.",
         "action": "Unavailable."
     }
-    //    TODO : finish this error
 };
 exports.regionError = {
     "error": {
@@ -47,7 +47,9 @@ exports.sortError = {
         "action": "Resubmit te request with a valid sort key"
     }
 };
+// list of parameter options for filtering
 exports.parameterOptions = ["name", "type", "state", "publicIP", "privateIP"];
+// map from simplified names to AWS's official terminology
 exports.awsTerms = {
     name: "instance-id",
     type: "instance-type",

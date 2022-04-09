@@ -1,7 +1,8 @@
-const app = require("../src/build/app")
+const app = require("../build/app")
 const request = require("supertest")
 
 const authKeys = "Basic QUtJQTM0MlA0UFhUR09INDZMSkU6aEpBZ3ZFWVQwTFFHTXBsa3lJTGdMdjkvYXVpR2JGUm5tUW9zeVI2dg==";
+
 describe("Check default behaviour", () => {
     test("GET /api/:region/instances", (done) => {
         request(app.default)
