@@ -22,8 +22,8 @@ function initializeRegion(req: express.Request) {
 }
 
 function authenticateUser(req: express.Request) {
-    process.env.AWS_ACCESS_KEY_ID = /*"AKIA342P4PXTCHWZMLZQ";//*/req.query.accessKeyId as string;
-    process.env.AWS_SECRET_ACCESS_KEY = /*"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";//*/req.query.secretAccessKey as string;
+    process.env.AWS_ACCESS_KEY_ID = req.query.accessKeyId as string;
+    process.env.AWS_SECRET_ACCESS_KEY = req.query.secretAccessKey as string;
 }
 
 function getInstancesInfo(req: express.Request, res: express.Response, params: DescribeParameters) {
