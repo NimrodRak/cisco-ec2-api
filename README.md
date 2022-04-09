@@ -15,3 +15,6 @@ as temporary keys (e.g. as session tokens using AWS's STS API).
 Furthermore, these keys should correspond to users who have assumed roles
 with only one policy: to allow calling `ec2:describeInstances` operations.
 ## Endpoints
+## Notes
+explain about HTTPS problems
+explain about regions
