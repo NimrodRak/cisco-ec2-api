@@ -19,8 +19,8 @@ function initializeRegion(req) {
     });
 }
 function authenticateUser(req) {
-    process.env.AWS_ACCESS_KEY_ID = /*"AKIA342P4PXTCHWZMLZQ";//*/ req.query.accessKeyId;
-    process.env.AWS_SECRET_ACCESS_KEY = /*"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";//*/ req.query.secretAccessKey;
+    process.env.AWS_ACCESS_KEY_ID = req.query.accessKeyId;
+    process.env.AWS_SECRET_ACCESS_KEY = req.query.secretAccessKey;
 }
 function getInstancesInfo(req, res, params) {
     const ec2 = new aws_sdk_1.default.EC2();
