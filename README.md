@@ -21,6 +21,10 @@ Returns json data about all instances in region, subject to filters and sorting
 * URL: `/api/:region/instances`
 * Method:
  `GET`
+* Headers:
+
+    **Required:**
+    * `Authorization` with value `Basic <base64 encoded access_key_id:secret_key>`.
 * URL Params:
 
    **Required:**
@@ -31,8 +35,7 @@ Returns json data about all instances in region, subject to filters and sorting
 
   * `name|type|state|privateIP|publicIP=[string]` corresponding to valid values for the
     relevant category.
-  * `sortby=["name"|"type"|"state"|"az"|"privateIP"|"publicIP"]`
-
+  * `sortby=["name"|"type"|"state"|"az"|"privateIP"|"publicIP"]`.
   * `maxResults=[integer]` a number larger or equal to 5.
 
   * `nextToken` a token received from a previous call to this API
